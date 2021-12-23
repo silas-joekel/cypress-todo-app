@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { TodoService } from './services/todo.service';
+import { Todo, TodoService } from './services/todo.service';
 import { User, UserService } from './services/user.service';
 
 @Component({
@@ -46,5 +46,9 @@ export class AppComponent {
 
   deleteTodo(id: number): void {
     this.todoService.deleteTodo(id);
+  }
+
+  trackById(index: number, item: Todo): number {
+    return item.id;
   }
 }
