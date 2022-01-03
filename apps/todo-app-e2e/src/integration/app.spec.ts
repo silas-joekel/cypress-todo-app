@@ -1,24 +1,24 @@
-import { getTitle, getTodos, setUser } from '../support/app.po';
+import { FeatureTest, getTitle, getTodos, testRoleBasedFeatures } from '../support/app.po';
 
-describe('todo-app', () => {
-  beforeEach(() => cy.visit('/'));
-
-  it("should have 'Simple Todo App' as title", () => {
-    getTitle().contains('Simple Todo App');
-  });
-
-  describe('see todo items', () => {
-    it('should be possible as guest', () => {
+const features: FeatureTest[] = [
+  {
+    title: 'see todo items',
+    testFunction: () => {
       const todos = getTodos();
 
       todos.should('have.length', 10);
 
       todos.contains('First Todo Item');
-    });
-  });
-
-  describe('see done status of todo items', () => {
-    it('should be possile as guest', () => {
+    },
+    accessibility: {
+      Guest: true,
+      User: true,
+      Admin: true,
+    },
+  },
+  {
+    title: 'see done status of todo items',
+    testFunction: () => {
       getTodos()
         .first()
         .find('[type="checkbox"]')
@@ -30,27 +30,16 @@ describe('todo-app', () => {
         .find('[type="checkbox"]')
         .should('exist')
         .should('be.checked');
-    });
-  });
-
-  describe('toggle done status of todo items', () => {
-    it('should not be possible as guest', () => {
-      getTodos()
-        .first()
-        .find('[type="checkbox"]')
-        .should('exist')
-        .should('be.disabled');
-
-      cy.contains('Develop Angular App')
-        .parent()
-        .find('[type="checkbox"]')
-        .should('exist')
-        .should('be.disabled');
-    });
-
-    it('should be possible as user', () => {
-      setUser('User');
-
+    },
+    accessibility: {
+      Guest: true,
+      User: true,
+      Admin: true,
+    },
+  },
+  {
+    title: 'toggle done status of todo items',
+    testFunction: () => {
       getTodos()
         .first()
         .find('[type="checkbox"]')
@@ -64,24 +53,16 @@ describe('todo-app', () => {
         .should('exist')
         .uncheck()
         .should('not.be.checked');
-    });
-  });
-
-  describe('delete todo items', () => {
-    it('should not be possible as user', () => {
-      setUser('User');
-
-      getTodos().first().find('button').should('not.exist');
-
-      cy.contains('Develop Angular App')
-        .parent()
-        .find('button')
-        .should('not.exist');
-    });
-
-    it('should be possible as admin', () => {
-      setUser('Admin');
-
+    },
+    accessibility: {
+      Guest: false,
+      User: true,
+      Admin: true,
+    },
+  },
+  {
+    title: 'delete todo items',
+    testFunction: () => {
       getTodos().first().find('button').should('exist').click();
 
       cy.contains('First Todo Item').should('not.exist');
@@ -93,28 +74,42 @@ describe('todo-app', () => {
         .click();
 
       cy.contains('Develop Angular App').should('not.exist');
-    });
-  });
-
-  describe('create todo items', () => {
-    it('should not be possible as user', () => {
-      setUser('User');
-
-      cy.get('#new-todo')
-        .should('not.exist');
-    });
-
-    it('should be possible as admin', () => {
-      setUser('Admin');
-
+    },
+    accessibility: {
+      Guest: false,
+      User: false,
+      Admin: true,
+    },
+  },
+  {
+    title: 'create todo items',
+    testFunction: () => {
       cy.get('[id=new-todo]')
-        .should('exist').type('New Todo item').type('{enter}').should('have.value', '');
+        .should('exist')
+        .type('New Todo item')
+        .type('{enter}')
+        .should('have.value', '');
 
-        cy.contains('New Todo item')
+      cy.contains('New Todo item')
         .parent()
         .find('[type="checkbox"]')
         .should('exist')
         .should('not.be.checked');
-    });
+    },
+    accessibility: {
+      Guest: false,
+      User: false,
+      Admin: true,
+    },
+  },
+];
+
+describe('todo-app', () => {
+  beforeEach(() => cy.visit('/'));
+
+  it("should have 'Simple Todo App' as title", () => {
+    getTitle().contains('Simple Todo App');
   });
+
+  testRoleBasedFeatures(features);
 });
